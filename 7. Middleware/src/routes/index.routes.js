@@ -1,9 +1,9 @@
-const express = require('express');
+const express = require('express')
 
-const router = express.Router()
+const router = express.Router();
 
 router.get('/', (req, res) => {
-    console.log("Welcome to API")
+    console.log("This is .get router")
     res.status(200).json({
         message: "Welcome to the API"
     })

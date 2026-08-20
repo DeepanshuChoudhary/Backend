@@ -1,11 +1,9 @@
 const express = require('express');
-const connectDB = require('./db/db')
 const indexRoutes = require('./routes/index.routes')
 
-const app = express();
-connectDB()
+const app = express()
 
-app.use('/', indexRoutes);
+app.use(express.json())
+app.use('/', indexRoutes)
 
-
-module.exports = app;
+module.exports = app
