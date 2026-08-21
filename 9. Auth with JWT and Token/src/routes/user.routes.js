@@ -35,9 +35,15 @@ router.post('/login', async (req, res) => {
 
     if (!isUserExist) {
         return res.status(401).json({
-            message: "Invalid input"
+            message: "Invalid username and password"
         })
     }
+
+    const token = jwt.sign({
+        id: isUserExist._id
+    }, process.env.JWT_SECRET)
+
+    res.cookie('token', token)
 
     // const passwordValid = password == isUserExist.password
 
@@ -48,7 +54,8 @@ router.post('/login', async (req, res) => {
     // }
 
     res.status(200).json({
-        message: "Login"
+        message: "Login",
+        isUserExist
     })
 
 })
