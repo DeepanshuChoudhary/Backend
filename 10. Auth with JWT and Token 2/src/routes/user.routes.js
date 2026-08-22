@@ -115,7 +115,7 @@ router.get('/user', async (req, res) => {
 
 })
 
-router.get('/logout', async (req, res) => {
+router.post('/logout', async (req, res) => {
 
     res.clearCookie("token")
 
