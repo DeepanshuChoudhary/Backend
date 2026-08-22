@@ -8,11 +8,11 @@ router.post('/register', async (req, res) => {
 
     const { username, password } = req.body
 
-    const user = await userModel.findOne({
+    const isUserAlreadyExist = await userModel.findOne({
         username
     })
 
-    if(user) {
+    if(isUserAlreadyExist) {
         return res.status(409).json({
             message: "This username already exist"
         })
@@ -24,9 +24,14 @@ router.post('/register', async (req, res) => {
 
     const token = jwt.sign({
         _id: data._id
-    }, process.env.JWT_SECRET)
+    }, process.env.JWT_SECRET, {
+        expiresIn: '1d'
+    })
 
-    res.cookie('token', token)
+    res.cookie('token', token, {
+        maxAge: 24*60*60*1000,
+        httpOnly: true
+    })
 
     res.status(201).json({
         message: "User registered successfully",
@@ -57,15 +62,25 @@ router.post('/login', async (req, res) => {
         })
     }
 
+    const userObj = user.toObject();
+
+    delete userObj.password
+    delete userObj.__v;
+
     const token = jwt.sign({
         _id: user._id
-    }, process.env.JWT_SECRET)
+    }, process.env.JWT_SECRET, {
+        expiresIn: '1d'
+    })
 
-    res.cookie('token', token)
+    res.cookie('token', token, {
+        maxAge: 24*60*60*1000,
+        httpOnly: true
+    })
 
     res.status(200).json({
         message: "User login successfully",
-        user
+        user: userObj
     })
 
 })
@@ -80,15 +95,32 @@ router.get('/user', async (req, res) => {
         })
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET)
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET)
+    
+        const data = await userModel.findOne({
+            _id : decoded._id
+        }).select("-password -__v").lean()
+    
+        return res.status(200).json({
+            message: "User still login",
+            data
+        })
+    }
+    catch(err) {
+        res.status(401).json({
+            message: "Invalid token"
+        })
+    }
 
-    const data = await userModel.findOne({
-        _id : decoded._id
-    })
+})
+
+router.get('/logout', async (req, res) => {
+
+    res.clearCookie("token")
 
     res.status(200).json({
-        message: "User still login",
-        data
+        message: "Logout successfully"
     })
 
 })
