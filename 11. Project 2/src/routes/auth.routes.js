@@ -8,23 +8,27 @@ router.post('/register', async (req, res) => {
 
     const { username, password } = req.body
 
-    const user = await userModel.findOne({
+    const userCheck = await userModel.findOne({
         username
     })
 
-    if (user) {
-        return res.status(401).json({
-            message: "User already exist"
+    if (userCheck) {
+        return res.status(409).json({
+            message: "Username already exist"
         })
     }
 
-    const data = await userModel.create({
-        username,
-        password
+    const user = await userModel.create({
+        username, password
     })
 
+    const userObj = user.toObject()
+
+    delete userObj.password
+    delete userObj.__v
+
     const token = jwt.sign({
-        _id: data._id
+        _id: user._id
     }, process.env.JWT_SECRET, {
         expiresIn: '1d'
     })
@@ -34,12 +38,7 @@ router.post('/register', async (req, res) => {
         httpOnly: true
     })
 
-    const userObj = data.toObject()
-
-    delete userObj.password
-    delete userObj.__v
-
-    res.status(201).json({
+    res.status(200).json({
         message: "User registered successfully",
         user: userObj
     })
@@ -50,31 +49,26 @@ router.post('/login', async (req, res) => {
 
     const { username, password } = req.body
 
-    const isUserExist = await userModel.findOne({
+    const user = await userModel.findOne({
         username
     })
 
-    if (!isUserExist) {
+    if (!user) {
         return res.status(401).json({
             message: "User not exist"
         })
     }
 
-    const isPassword = password == isUserExist.password
+    const isPassword = password === user.password
 
     if (!isPassword) {
         return res.status(401).json({
-            message: "Wrong password"
+            message: "Wrong password, please try again"
         })
     }
 
-    const userObj = isUserExist.toObject()
-
-    delete userObj.password
-    delete userObj.__v
-
     const token = jwt.sign({
-        _id: isUserExist.id
+        _id: user._id
     }, process.env.JWT_SECRET, {
         expiresIn: '1d'
     })
@@ -84,8 +78,13 @@ router.post('/login', async (req, res) => {
         httpOnly: true
     })
 
+    const userObj = user.toObject()
+
+    delete userObj.password
+    delete userObj.__v
+
     res.status(200).json({
-        message: "Your are login successfully",
+        message: "User login successfully",
         user: userObj
     })
 
@@ -95,37 +94,28 @@ router.get('/user', async (req, res) => {
 
     const { token } = req.cookies
 
-    if(!token) {
+    if (!token) {
         return res.status(401).json({
-            message: "User logout"
+            message: "Token are not available"
         })
     }
 
-    try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET)
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET)
-    
-        const user = await userModel.findOne({
-            _id: decoded._id
-        }).select('-password -__v').lean()
+    const user = await userModel.findOne({
+        _id: decoded._id
+    }).select("-password").lean()
 
-        if(!user) {
-            return res.status(401).json({
-                message: "Invalid User"
-            })
-        }
-
-        return res.status(200).json({
-            message: "User login",
-            user
-        })
-        
-    }
-    catch(err) {
+    if (!user) {
         return res.status(401).json({
-            message: "Invalid token"
+            message: "User not found"
         })
     }
+
+    res.status(200).json({
+        message: "User login already",
+        user
+    })
 
 })
 
@@ -134,7 +124,7 @@ router.post('/logout', async (req, res) => {
     res.clearCookie('token')
 
     res.status(200).json({
-        message: "User logout"
+        message: "User logout successfully"
     })
 
 })

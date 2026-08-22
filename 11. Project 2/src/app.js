@@ -1,7 +1,7 @@
 const express = require('express');
-const connectDB = require('./db/db')
+const connectDB = require('./db/db.js')
+const authRouter = require('./routes/auth.routes.js')
 const cookie = require('cookie-parser')
-const authRouter = require('./routes/user.routes')
 
 const app = express()
 connectDB()
