@@ -1,5 +1,6 @@
 const userModel = require('../models/user.model')
 const jwt = require('jsonwebtoken')
+const bcrypt = require('bcryptjs')
 
 const registerController = async (req, res) => {
 
@@ -16,7 +17,8 @@ const registerController = async (req, res) => {
     }
 
     const user = await userModel.create({
-        username, password
+        username, 
+        password: await bcrypt.hash(password, 10)
     })
 
     const token = jwt.sign({
@@ -26,18 +28,18 @@ const registerController = async (req, res) => {
     })
 
     res.cookie('token', token, {
-        maxAge: '1d',
+        maxAge: 24*60*60*1000,
         httpOnly: true
     })
 
-    const userObj = user.toObject()
+    // const userObj = user.toObject()
 
-    delete userObj.password
-    delete userObj.__v
+    // delete userObj.password
+    // delete userObj.__v
 
     res.status(201).json({
         message: "User login successfully",
-        user: userObj
+        user
     })
 
 }
@@ -56,7 +58,9 @@ const loginController = async (req, res) => {
         })
     }
 
-    const isPassword = password === user.password;
+    // const isPassword = password === user.password;
+
+    const isPassword = await bcrypt.compare(password, user.password)
 
     if(!isPassword) {
         return res.status(401).json({
@@ -75,14 +79,14 @@ const loginController = async (req, res) => {
         httpOnly: true
     })
 
-    const userObj = user.toObject()
+    // const userObj = user.toObject()
 
-    delete userObj.password
-    delete userObj.__v
+    // delete userObj.password
+    // delete userObj.__v
 
     res.status(200).json({
         message: "USer login successfully",
-        user: userObj
+        user
     })
 
 }
@@ -128,4 +132,4 @@ module.exports = {
     loginController,
     userController,
     logoutController
-}
+} 
