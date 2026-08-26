@@ -93,3 +93,8 @@ Thumbs.db
 .vscode/
 *.swp
 *.swo
+
+# Local testing grounds / scratch directories
+Testing - folder/
+testing-folder/
+[Tt]esting*folder/
