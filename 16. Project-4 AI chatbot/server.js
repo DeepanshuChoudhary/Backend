@@ -5,7 +5,7 @@ const { Server } = require('socket.io')
 const httpServer = createServer(app);
 const io = new Server(httpServer)
 
-io.on("hello", (socket) => {
+io.on("connection", (socket) => {
     // console.log(socket)
 })
 
