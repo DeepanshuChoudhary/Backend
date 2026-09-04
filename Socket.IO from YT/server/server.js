@@ -20,6 +20,8 @@ io.on("connection", (socket) => {
 
     socket.on("message", (data) => {
         console.log(data);
+        // socket.broadcast.emit("receive-message", data)
+        socket.to(data.room).emit("receive-message", data)
     })
 
     socket.on("disconnect", () => {
