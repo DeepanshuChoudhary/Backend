@@ -1,10 +1,9 @@
 const express = require('express');
 
-const app = express();
+const app = express()
 
 app.get('/', (req, res) => {
-    console.log("Hello world")
-    res.send("Ok")
+    res.send("Connection Done")
 })
 
 module.exports = app;
